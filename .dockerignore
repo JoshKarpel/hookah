@@ -131,4 +131,9 @@ dmypy.json
 .idea/
 .vscode/
 
-*.py.lprof
+docker/
+docs/
+tests/
+*.yaml
+*.yml
+*.ini

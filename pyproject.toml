@@ -1,0 +1,72 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hookah"
+version = "0.1.0"
+description = ""
+readme="README.md"
+homepage="https://github.com/JoshKarpel/hookah"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3.10",
+    "Typing :: Typed"]
+authors = ["JoshKarpel <josh.karpel@gmail.com>"]
+license = "MIT"
+include = ["py.typed", "demo/*"]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+
+[tool.poetry.dev-dependencies]
+pytest = ">=6"
+pytest-watch = ">=4"
+pytest-cov = ">=3"
+pytest-xdist = ">=2"
+mypy = ">=0.961"
+pytest-mypy = ">=0.8"
+pytest-mock = ">=3"
+hypothesis = ">=6"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = "\\.pyi?$"
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pycln]
+all = true
+
+[tool.pytest.ini_options]
+addopts = ["--strict-markers", "--mypy", "-n", "auto"]
+testpaths = ["tests", "hookah"]
+norecursedirs = ["demo"]
+
+[tool.mypy]
+pretty = false
+show_error_codes = true
+
+files = ["hookah/*.py", "tests/*.py"]
+
+check_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+disallow_any_generics = true
+
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+warn_redundant_casts = true
+
+ignore_missing_imports = true
