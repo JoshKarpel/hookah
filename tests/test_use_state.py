@@ -1,4 +1,4 @@
-from hookah.state import render, use_state
+from hookah import render, use_state
 
 
 def counter(inc: int = 1) -> int:
