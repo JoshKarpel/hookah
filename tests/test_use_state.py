@@ -1,4 +1,4 @@
-from hookah import render, use_state
+from hookah import run, use_state
 
 
 def counter(inc: int = 1) -> int:
@@ -14,12 +14,12 @@ def two_counters() -> tuple[int, int]:
 
 
 def test_setter_affects_subsequent_returns() -> None:
-    assert render(counter) == 0
-    assert render(counter) == 1
-    assert render(counter) == 2
+    assert run(counter) == 0
+    assert run(counter) == 1
+    assert run(counter) == 2
 
 
 def test_states_are_isolated_from_each_other() -> None:
-    assert render(two_counters) == (0, 0)
-    assert render(two_counters) == (1, -1)
-    assert render(two_counters) == (2, -2)
+    assert run(two_counters) == (0, 0)
+    assert run(two_counters) == (1, -1)
+    assert run(two_counters) == (2, -2)

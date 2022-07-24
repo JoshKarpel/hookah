@@ -1,6 +1,6 @@
 from pytest_mock import MockerFixture
 
-from hookah import render, use_effect
+from hookah import run, use_effect
 
 
 def test_callback_is_called_every_time_if_no_deps(mocker: MockerFixture) -> None:
@@ -9,13 +9,13 @@ def test_callback_is_called_every_time_if_no_deps(mocker: MockerFixture) -> None
     def _() -> None:
         use_effect(mock)
 
-    render(mock)
+    run(mock)
     assert mock.call_count == 1
 
-    render(mock)
+    run(mock)
     assert mock.call_count == 2
 
-    render(mock)
+    run(mock)
     assert mock.call_count == 3
 
 
@@ -26,24 +26,24 @@ def test_callback_is_called_based_on_whether_dependencies_changed(mocker: Mocker
     def _() -> None:
         use_effect(mock, deps)
 
-    render(_)
+    run(_)
     assert mock.call_count == 1
 
-    render(_)
+    run(_)
     assert mock.call_count == 1
 
     deps[0] = 1
 
-    render(_)
+    run(_)
     assert mock.call_count == 2
 
-    render(_)
+    run(_)
     assert mock.call_count == 2
 
     deps[0] = 0
 
-    render(_)
+    run(_)
     assert mock.call_count == 3
 
-    render(_)
+    run(_)
     assert mock.call_count == 3
