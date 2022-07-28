@@ -6,9 +6,6 @@ source =
     hookah/
     tests/
 
-omit =
-    hookah/demo/*
-
 [report]
 
 skip_empty = True
@@ -17,7 +14,7 @@ sort = -cover
 
 exclude_lines =
     def __repr__
-    if self\.debug
+    def __str__
 
     raise AssertionError
     raise NotImplementedError
@@ -30,4 +27,3 @@ exclude_lines =
 
     pragma: unreachable
     pragma: debugging
-    pragma: never runs
