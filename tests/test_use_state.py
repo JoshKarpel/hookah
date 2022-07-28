@@ -12,25 +12,25 @@ def count(inc: int = 1) -> int:
 
 
 @pytest.fixture
-def counter() -> Context:
+def counter() -> Context[[int], int]:
     return Context(count)
 
 
 @pytest.fixture
-def two_counters() -> Context:
+def two_counters() -> Context[[], tuple[int, int]]:
     def two_counts() -> tuple[int, int]:
         return count(inc=1), count(inc=-1)
 
     return Context(two_counts)
 
 
-def test_setter_affects_subsequent_returns(counter: Context) -> None:
+def test_setter_affects_subsequent_returns(counter: Context[int, int]) -> None:
     assert counter() == 0
     assert counter() == 1
     assert counter() == 2
 
 
-def test_states_are_isolated_from_each_other(two_counters: Context) -> None:
+def test_states_are_isolated_from_each_other(two_counters: Context[[], tuple[int, int]]) -> None:
     assert two_counters() == (0, 0)
     assert two_counters() == (1, -1)
     assert two_counters() == (2, -2)

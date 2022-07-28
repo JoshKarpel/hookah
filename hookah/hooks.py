@@ -3,22 +3,22 @@ from __future__ import annotations
 from collections.abc import Sequence
 from contextvars import ContextVar
 from dataclasses import dataclass
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, ParamSpec, TypeVar
 
 T = TypeVar("T")
 A = TypeVar("A")
+P = ParamSpec("P")
+
+current_context: ContextVar[Context[Any, Any]] = ContextVar("current_context")
 
 
-current_context: ContextVar[Context] = ContextVar("current_context")
-
-
-class Context:
-    def __init__(self, func):  # type: ignore[no-untyped-def]
+class Context(Generic[P, T]):
+    def __init__(self, func: Callable[P, T]):
         self.func = func
         self.current_hook = 0
         self.hooks: dict[int, Any] = {}
 
-    def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
         current_context.set(self)
         self.current_hook = 0
         return self.func(*args, **kwargs)
