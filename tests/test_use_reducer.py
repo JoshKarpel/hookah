@@ -1,6 +1,6 @@
 from typing import Literal
 
-from hookah import run, use_reducer
+from hookah import Context, use_reducer
 
 CounterAction = Literal["inc", "dec", "reset"]
 
@@ -16,15 +16,16 @@ def counter(state: int, action: CounterAction) -> int:
 
 
 def test_counter() -> None:
+    @Context
     def _(action: CounterAction) -> int:
         count, dispatch = use_reducer(counter, 0)
         dispatch(action)
         return count  # previous value!
 
-    assert run(_, "inc") == 0
-    assert run(_, "dec") == 1
-    assert run(_, "inc") == 0
-    assert run(_, "inc") == 1
-    assert run(_, "reset") == 2
-    assert run(_, "dec") == 0
-    assert run(_, "reset") == -1
+    assert _("inc") == 0
+    assert _("dec") == 1
+    assert _("inc") == 0
+    assert _("inc") == 1
+    assert _("reset") == 2
+    assert _("dec") == 0
+    assert _("reset") == -1

@@ -1,49 +1,56 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, Callable, Generic, TypeVar
 
 T = TypeVar("T")
 A = TypeVar("A")
 
-__current_hook = 0
-__hooks: dict[int, Any] = {}
+
+current_context: ContextVar[Context] = ContextVar("current_context")
 
 
-def run(func, *args, **kwargs):  # type: ignore[no-untyped-def]
-    global __current_hook
-    __current_hook = 0
+class Context:
+    def __init__(self, func):  # type: ignore[no-untyped-def]
+        self.func = func
+        self.current_hook = 0
+        self.hooks: dict[int, Any] = {}
 
-    return func(*args, **kwargs)
+    def __call__(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+        current_context.set(self)
+        self.current_hook = 0
+        return self.func(*args, **kwargs)
 
 
 def use_state(initial_value: T) -> tuple[T, Callable[[T], None]]:
-    global __current_hook
-    value: T = __hooks.setdefault(__current_hook, initial_value)
+    ctx = current_context.get()
 
-    i = __current_hook
+    value: T = ctx.hooks.setdefault(ctx.current_hook, initial_value)
+
+    i = ctx.current_hook  # capture value now for setter closure
 
     def setter(value: T) -> None:
-        __hooks[i] = value
+        ctx.hooks[i] = value
 
-    __current_hook += 1
+    ctx.current_hook += 1
 
     return value, setter
 
 
 def use_reducer(reducer: Callable[[T, A], T], initial_state: T) -> tuple[T, Callable[[A], None]]:
-    global __current_hook
+    ctx = current_context.get()
 
-    reducer = __hooks.setdefault(__current_hook, reducer)
+    reducer = ctx.hooks.setdefault(ctx.current_hook, reducer)
 
-    state_idx = __current_hook + 1
-    state = __hooks.setdefault(state_idx, initial_state)
+    state_idx = ctx.current_hook + 1
+    state = ctx.hooks.setdefault(state_idx, initial_state)
 
     def dispatch(action: A) -> None:
-        __hooks[state_idx] = reducer(__hooks[state_idx], action)
+        ctx.hooks[state_idx] = reducer(ctx.hooks[state_idx], action)
 
-    __current_hook += 2
+    ctx.current_hook += 2
     return state, dispatch
 
 
@@ -53,22 +60,23 @@ class Ref(Generic[T]):
 
 
 def use_ref(initial_value: T) -> Ref[T]:
-    global __current_hook
-    box: Ref[T] = __hooks.setdefault(__current_hook, Ref(initial_value))
+    ctx = current_context.get()
 
-    __current_hook += 1
+    box: Ref[T] = ctx.hooks.setdefault(ctx.current_hook, Ref(initial_value))
+
+    ctx.current_hook += 1
 
     return box
 
 
 def use_effect(callback, deps: Sequence[object] | None = None) -> None:  # type: ignore[no-untyped-def]
-    global __current_hook
+    ctx = current_context.get()
 
-    previous_deps = __hooks.get(__current_hook, [])
+    previous_deps = ctx.hooks.get(ctx.current_hook, [])
     if deps is None:
         callback()
     elif deps != previous_deps:
         callback()
-        __hooks[__current_hook] = list(deps)
+        ctx.hooks[ctx.current_hook] = list(deps)
 
-    __current_hook += 1
+    ctx.current_hook += 1

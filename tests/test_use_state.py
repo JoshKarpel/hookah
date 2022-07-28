@@ -1,7 +1,9 @@
-from hookah import run, use_state
+import pytest
+
+from hookah import Context, use_state
 
 
-def counter(inc: int = 1) -> int:
+def count(inc: int = 1) -> int:
     x, set_x = use_state(0)
 
     set_x(x + inc)
@@ -9,17 +11,41 @@ def counter(inc: int = 1) -> int:
     return x
 
 
-def two_counters() -> tuple[int, int]:
-    return counter(inc=1), counter(inc=-1)
+@pytest.fixture
+def counter() -> Context:
+    return Context(count)
 
 
-def test_setter_affects_subsequent_returns() -> None:
-    assert run(counter) == 0
-    assert run(counter) == 1
-    assert run(counter) == 2
+@pytest.fixture
+def two_counters() -> Context:
+    def two_counts() -> tuple[int, int]:
+        return count(inc=1), count(inc=-1)
+
+    return Context(two_counts)
 
 
-def test_states_are_isolated_from_each_other() -> None:
-    assert run(two_counters) == (0, 0)
-    assert run(two_counters) == (1, -1)
-    assert run(two_counters) == (2, -2)
+def test_setter_affects_subsequent_returns(counter: Context) -> None:
+    assert counter() == 0
+    assert counter() == 1
+    assert counter() == 2
+
+
+def test_states_are_isolated_from_each_other(two_counters: Context) -> None:
+    assert two_counters() == (0, 0)
+    assert two_counters() == (1, -1)
+    assert two_counters() == (2, -2)
+
+
+def test_contexts_are_isolated_from_each_other() -> None:
+    a = Context(count)
+    b = Context(count)
+
+    assert a() == 0
+    assert a() == 1
+
+    assert b() == 0
+    assert b() == 1
+
+    assert a() == 2
+
+    assert b() == 2
